@@ -1,0 +1,70 @@
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
+#creating antecedents(inputs) such as Fever,Nausea_vomiting,Aches_pains
+Fever = ctrl.Antecedent(np.arange(0, 3, 1), 'Fever')
+Nausea_vomiting = ctrl.Antecedent(np.arange(0, 3,1), 'Nausea and vomiting')
+Aches_pains= ctrl.Antecedent(np.arange(0,3, 1), 'Aches and pains')
+
+#Creating consequent(output) which is Dengue
+Dengue = ctrl.Consequent(np.arange(0,3,1), 'Dengue')
+
+#creating custom membership functions such as No,maybe,Yes
+Fever['No'] = fuzz.trimf(Fever.universe, [0, 0,1])
+Fever['Maybe'] = fuzz.trimf(Fever.universe, [0, 1, 2])
+Fever['Yes'] = fuzz.trimf(Fever.universe, [1,2,2])
+Nausea_vomiting['No'] = fuzz.trimf(Nausea_vomiting.universe, [0, 0,1])
+Nausea_vomiting['Maybe'] = fuzz.trimf(Nausea_vomiting.universe, [0, 1, 2])
+Nausea_vomiting['Yes'] = fuzz.trimf(Nausea_vomiting.universe, [1,2,2])
+Aches_pains['No'] = fuzz.trimf(Aches_pains.universe, [0, 0,1])
+Aches_pains['Maybe'] = fuzz.trimf(Aches_pains.universe, [0, 1, 2])
+Aches_pains['Yes'] = fuzz.trimf(Aches_pains.universe, [1,2,2])
+Dengue['No'] = fuzz.trimf(Dengue.universe, [0, 0,1])
+Dengue['Maybe'] = fuzz.trimf(Dengue.universe, [0, 1, 2])
+Dengue['Yes'] = fuzz.trimf(Dengue.universe, [1,2,2])
+Fever.view()
+Nausea_vomiting.view()
+
+#creating control system and rules
+rule1 = ctrl.Rule(Fever['No'] & Nausea_vomiting['Yes'] | Aches_pains['Yes'] | Nausea_vomiting['No'] | Aches_pains['No'] | Nausea_vomiting['Maybe'] | Aches_pains['Maybe'],Dengue['No'])
+rule2 = ctrl.Rule(Fever['Yes'] & Nausea_vomiting['Maybe'], Dengue['Maybe'])
+rule3 = ctrl.Rule(Fever['Yes'] & Nausea_vomiting['Yes'] | Aches_pains['Yes'] , Dengue['Yes'])
+rule4 = ctrl.Rule(Fever['Yes'] & Nausea_vomiting['No'] | Aches_pains['No'],Dengue['No'])
+rule5 = ctrl.Rule(Fever['Yes'] & Aches_pains['Maybe'], Dengue['Maybe'])
+Dengue__ctrl = ctrl.ControlSystem([rule1,rule2,rule3,rule4,rule5])
+Dengue_= ctrl.ControlSystemSimulation(Dengue__ctrl)
+
+#Getting inputs from the user
+print("Do you have Fever?")
+n=(str(input("Enter Yes/No/Maybe\n"))).lower()
+if n=='no':
+    n=0
+if n=='yes':
+    n=2
+if n=='maybe':
+    n=1
+Dengue_.input['Fever'] =n
+print("Do you have Nausea and vomiting? ")
+n=(str(input("Enter Yes/No/Maybe\n"))).lower()
+if n=='no':
+    n=0
+if n=='yes':
+    n=2
+if n=='maybe':
+    n=1
+Dengue_.input['Nausea and vomiting'] =n
+print("Do you have Aches and pains?")
+n=(str(input("Enter Yes/No/Maybe\n"))).lower()
+if n=='no':
+    n=0
+if n=='yes':
+    n=2
+if n=='maybe':
+    n=1
+Dengue_.input['Aches and pains'] =n
+
+#using compute method to compute the obtained data from user
+Dengue_.compute()
+print(Dengue_.output['Dengue'])
+Dengue.view(sim=Dengue_)
